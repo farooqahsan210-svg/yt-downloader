@@ -25,7 +25,7 @@ app.post('/convert', async (req, res) => {
     return res.status(400).json({ error: "Please enter a valid YouTube link." });
   }
 
-  const ytDlp = spawn('yt-dlp', ['--no-playlist', '--dump-json', url]);
+  const ytDlp = spawn('yt-dlp', ['--no-playlist', '--extractor-args', 'youtube:player_client=android', '--dump-json', url]);
   let dataString = '';
   let errorString = '';
 
@@ -61,7 +61,6 @@ app.post('/convert', async (req, res) => {
 
 // 2. Download Endpoint with Timeout Disabled for Long Videos (20m, 40m, 120m+)
 app.get('/download', (req, res) => {
-  // Disable timeouts so long videos don't get cut off
   req.setTimeout(0);
   res.setTimeout(0);
 
@@ -76,6 +75,7 @@ app.get('/download', (req, res) => {
   if (quality === 'mp3') {
     ytArgs = [
       '--no-playlist',
+      '--extractor-args', 'youtube:player_client=android',
       '-x', '--audio-format', 'mp3',
       '--audio-quality', '0',
       '-o', outputPath,
@@ -89,6 +89,7 @@ app.get('/download', (req, res) => {
     
     ytArgs = [
       '--no-playlist',
+      '--extractor-args', 'youtube:player_client=android',
       '-f', formatSelector,
       '--merge-output-format', 'mp4',
       '-o', outputPath,
@@ -117,13 +118,17 @@ app.get('/download', (req, res) => {
     res.download(outputPath, quality === 'mp3' ? 'audio.mp3' : `video_${quality}.mp4`, (err) => {
       try {
         if (fs.existsSync(outputPath)) {
-          fs.unlinkSync(outputPath); // Cleanup file after sending
+          fs.unlinkSync(outputPath);
         }
       } catch (e) {
         console.error("Cleanup error:", e);
       }
     });
   });
+});
+
+app.get('/terms', (req, res) => {
+  res.sendFile(path.join(__dirname, 'terms.html'));
 });
 
 app.listen(PORT, () => {
