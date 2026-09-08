@@ -1,4 +1,4 @@
-FROM node:18-bullseye
+FROM node:20
 
 # Install ffmpeg and python/yt-dlp dependencies
 RUN apt-get update && apt-get install -y \
