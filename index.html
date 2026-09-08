@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube to Video Converter - Free YouTube Downloader</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: linear-gradient(135deg, #bae6fd 0%, #7dd3fc 100%); color: #0f172a; min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between; }
+        header { background: #0284c7; color: white; padding: 20px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        header h1 { font-size: 28px; margin-bottom: 5px; }
+        .container { max-width: 900px; margin: 30px auto; background: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 90%; }
+        
+        .search-box-wrap { text-align: center; margin-bottom: 20px; }
+        .search-container { display: flex; justify-content: center; gap: 10px; margin-bottom: 10px; }
+        .search-container input { width: 70%; padding: 12px 15px; font-size: 16px; border: 2px solid #cbd5e1; border-radius: 6px; outline: none; }
+        .search-container input:focus { border-color: #0284c7; }
+        .search-container button { padding: 12px 25px; background: #0284c7; color: white; border: none; font-size: 16px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .search-container button:hover { background: #0369a1; }
+        
+        .terms-text { font-size: 12px; color: #64748b; }
+        .terms-text a { color: #dc2626; text-decoration: none; font-weight: bold; }
+        .terms-text a:hover { text-decoration: underline; }
+
+        .tabs { display: flex; justify-content: center; gap: 10px; margin: 25px 0; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; }
+        .tab-btn { padding: 10px 20px; background: #e0f2fe; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; color: #0369a1; transition: 0.3s; }
+        .tab-btn.active, .tab-btn:hover { background: #0284c7; color: white; }
+
+        .preview-section { display: none; background: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px; margin-bottom: 20px; align-items: center; gap: 20px; }
+        .preview-section img { width: 140px; height: 95px; object-fit: cover; border-radius: 4px; }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #cbd5e1; }
+        th { background: #f1f5f9; color: #334155; }
+        .download-btn { background: #10b981; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none; font-size: 14px; display: inline-flex; align-items: center; gap: 5px; font-weight: bold; }
+        .download-btn:hover { background: #059669; }
+
+        .seo-content { margin-top: 40px; background: #f8fafc; padding: 25px; border-radius: 8px; font-size: 14px; color: #334155; line-height: 1.8; border-top: 4px solid #0284c7; }
+        .seo-content h3 { color: #0284c7; margin: 15px 0 8px 0; }
+
+        /* Creator Profile Section Style */
+        .creator-profile { margin-top: 30px; background: #f8fafc; padding: 20px; border-radius: 8px; text-align: center; border: 1px solid #e2e8f0; }
+        .creator-profile img { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; border: 3px solid #0284c7; margin-bottom: 10px; }
+        .creator-profile h4 { color: #1e293b; font-size: 18px; margin-bottom: 4px; }
+        .creator-profile p { color: #64748b; font-size: 13px; }
+        
+        footer { background: #0f172a; color: #94a3b8; text-align: center; padding: 20px; font-size: 14px; margin-top: 40px; }
+        footer a { color: #38bdf8; text-decoration: none; margin: 0 5px; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>YouTube to Video Converter</h1>
+        <p>Fast & Free YouTube Downloader to MP3 & MP4</p>
+    </header>
+
+    <div class="container">
+        <div class="search-box-wrap">
+            <div class="search-container">
+                <input type="text" id="videoUrl" placeholder="Paste YouTube video link here...">
+                <button onclick="handleConvert()">Start</button>
+            </div>
+            <div class="terms-text">
+                By using our service you are accepting our <a href="/terms" target="_blank">Terms of Use</a>
+            </div>
+        </div>
+
+        <div id="previewSection" class="preview-section">
+            <img id="videoThumb" src="" alt="Thumbnail">
+            <div>
+                <h4 id="videoTitle" style="margin-bottom: 8px; color: #1e293b;"></h4>
+                <p>Duration: <span id="videoDuration"></span></p>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('mp3')">MP3 Downloader</button>
+            <button class="tab-btn" onclick="switchTab('mp4')">MP4 Downloader</button>
+            <button class="tab-btn" onclick="switchTab('others')">Others</button>
+        </div>
+
+        <!-- MP3 Tab Content -->
+        <div id="mp3" class="tab-content active">
+            <table>
+                <thead><tr><th>File Type</th><th>Format</th><th>Action</th></tr></thead>
+                <tbody>
+                    <tr><td>MP3-320Kbps</td><td>Auto</td><td><a href="#" id="dl-mp3-320" class="download-btn">⬇ Download</a></td></tr>
+                    <tr><td>MP3-256Kbps</td><td>Auto</td><td><a href="#" id="dl-mp3-256" class="download-btn">⬇ Download</a></td></tr>
+                    <tr><td>MP3-128Kbps</td><td>Auto</td><td><a href="#" id="dl-mp3-128" class="download-btn">⬇ Download</a></td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- MP4 Tab Content -->
+        <div id="mp4" class="tab-content">
+            <table>
+                <thead><tr><th>File Type</th><th>Format</th><th>Action</th></tr></thead>
+                <tbody>
+                    <tr><td>1080p (.mp4)</td><td>Auto</td><td><a href="#" id="dl-1080p" class="download-btn">⬇ Download</a></td></tr>
+                    <tr><td>720p (.mp4)</td><td>Auto</td><td><a href="#" id="dl-720p" class="download-btn">⬇ Download</a></td></tr>
+                    <tr><td>360p (.mp4)</td><td>Auto</td><td><a href="#" id="dl-360p" class="download-btn">⬇ Download</a></td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Others Tab Content -->
+        <div id="others" class="tab-content">
+            <table>
+                <thead><tr><th>File Type</th><th>Format</th><th>Action</th></tr></thead>
+                <tbody>
+                    <tr><td>MP3-320kbps</td><td>Auto</td><td><a href="#" id="dl-oth-320" class="download-btn">⬇ Download</a></td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="seo-content">
+            <h3>Download Video and Audio from YouTube</h3>
+            <p>Y2mate is a popular free YouTube video downloader that allows users to easily convert and download videos from YouTube in high quality safely and easily without registration.</p>
+        </div>
+
+        <!-- Creator Profile Section -->
+        <div class="creator-profile">
+            <img src="creater.jpeg" alt="Ahsan Farooq">
+            <h4>Ahsan Farooq</h4>
+            <p>Website Developer & Creator</p>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2016 - 2026 y2mate.com | <a href="/terms">Terms of Service</a></p>
+    </footer>
+
+    <script>
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        async function handleConvert() {
+            const url = document.getElementById('videoUrl').value.trim();
+            if (!url) {
+                alert('Please enter a valid YouTube URL!');
+                return;
+            }
+            
+            document.querySelector('.search-container button').innerText = "Processing...";
+
+            try {
+                const res = await fetch('/convert', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+                const data = await res.json();
+                
+                if(res.ok) {
+                    document.getElementById('videoThumb').src = data.thumbnail;
+                    document.getElementById('videoTitle').innerText = data.title;
+                    document.getElementById('videoDuration').innerText = data.duration;
+                    document.getElementById('previewSection').style.display = 'flex';
+
+                    const encodedUrl = encodeURIComponent(url);
+                    document.getElementById('dl-mp3-320').href = `/download?url=${encodedUrl}&quality=mp3`;
+                    document.getElementById('dl-mp3-256').href = `/download?url=${encodedUrl}&quality=mp3`;
+                    document.getElementById('dl-mp3-128').href = `/download?url=${encodedUrl}&quality=mp3`;
+                    document.getElementById('dl-1080p').href = `/download?url=${encodedUrl}&quality=1080p`;
+                    document.getElementById('dl-720p').href = `/download?url=${encodedUrl}&quality=720p`;
+                    document.getElementById('dl-360p').href = `/download?url=${encodedUrl}&quality=360p`;
+                    document.getElementById('dl-oth-320').href = `/download?url=${encodedUrl}&quality=mp3`;
+                } else {
+                    alert(data.error || "Failed to process video.");
+                }
+            } catch (err) {
+                console.error(err);
+                alert("An error occurred while connecting to the server.");
+            } finally {
+                document.querySelector('.search-container button').innerText = "Start";
+            }
+        }
+    </script>
+</body>
+</html>
