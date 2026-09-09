@@ -18,6 +18,16 @@ app.get('/terms', (req, res) => {
   res.sendFile(path.join(__dirname, 'terms.html'));
 });
 
+// Helper function to include cookies automatically if uploaded
+function getBaseYtArgs() {
+  let args = ['--no-playlist', '--extractor-args', 'youtube:player_client=android,web'];
+  const cookiePath = path.join(__dirname, 'cookies.txt');
+  if (fs.existsSync(cookiePath)) {
+    args.push('--cookies', cookiePath);
+  }
+  return args;
+}
+
 // 1. Fetch Real Metadata Endpoint
 app.post('/convert', async (req, res) => {
   const { url } = req.body;
@@ -25,7 +35,8 @@ app.post('/convert', async (req, res) => {
     return res.status(400).json({ error: "Please enter a valid YouTube link." });
   }
 
-  const ytDlp = spawn('yt-dlp', ['--no-playlist', '--extractor-args', 'youtube:player_client=android', '--dump-json', url]);
+  const ytArgs = [...getBaseYtArgs(), '--dump-json', url];
+  const ytDlp = spawn('yt-dlp', ytArgs);
   let dataString = '';
   let errorString = '';
 
@@ -71,30 +82,26 @@ app.get('/download', (req, res) => {
   let filename = quality === 'mp3' ? `audio_${uniqueId}.mp3` : `video_${uniqueId}.mp4`;
   let outputPath = path.join(__dirname, filename);
 
-  let ytArgs = [];
+  let ytArgs = [...getBaseYtArgs()];
   if (quality === 'mp3') {
-    ytArgs = [
-      '--no-playlist',
-      '--extractor-args', 'youtube:player_client=android',
+    ytArgs.push(
       '-x', '--audio-format', 'mp3',
       '--audio-quality', '0',
       '-o', outputPath,
       url
-    ];
+    );
   } else {
     let formatSelector = 'bestvideo+bestaudio/best';
     if (quality === '1080p') formatSelector = 'bestvideo[height<=1080]+bestaudio/best[height<=1080]';
     if (quality === '720p') formatSelector = 'bestvideo[height<=720]+bestaudio/best[height<=720]';
     if (quality === '360p') formatSelector = 'bestvideo[height<=360]+bestaudio/best[height<=360]';
     
-    ytArgs = [
-      '--no-playlist',
-      '--extractor-args', 'youtube:player_client=android',
+    ytArgs.push(
       '-f', formatSelector,
       '--merge-output-format', 'mp4',
       '-o', outputPath,
       url
-    ];
+    );
   }
 
   console.log(`Starting download for: ${url} (${quality}) - This may take a while for long videos.`);
@@ -110,7 +117,7 @@ app.get('/download', (req, res) => {
 
   downloadProcess.on('close', (code) => {
     if (code !== 0 || !fs.existsSync(outputPath)) {
-      console.error(`Download failed with exit code ${code}`);
+      console.log(`Download failed with exit code ${code}`);
       return res.status(500).send("Download failed.");
     }
 
@@ -127,8 +134,8 @@ app.get('/download', (req, res) => {
   });
 });
 
-app.get('/terms', (req, res) => {
-  res.sendFile(path.join(__dirname, 'terms.html'));
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
 
 app.listen(PORT, () => {
